@@ -30,7 +30,6 @@ for (const t of seed)
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 560, height: 470 }, deviceScaleFactor: 2 });
-// eslint-disable-next-line no-undef -- runs in the browser context, not Node
 await page.addInitScript((t) => localStorage.setItem('tf_token', t), token);
 await page.goto(base);
 await page.waitForSelector('[data-testid="task"]');
