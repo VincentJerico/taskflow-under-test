@@ -10,6 +10,8 @@ documented set of deliberately-seeded bugs and the tests that catch them.
 
 Companion to my [QA Engineering Journey](https://github.com/VincentJerico/qa-engineering-journey).
 
+![TaskFlow UI](docs/screenshot.png)
+
 ## Stack
 - **App:** Node + Express + SQLite (better-sqlite3) + a minimal static UI
 - **Tests:** Vitest (unit), Supertest (API), Playwright (E2E — added later)
