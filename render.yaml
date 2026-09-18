@@ -1,0 +1,25 @@
+# Render Blueprint — deploys TaskFlow as a Node web service.
+# Deploy: Render Dashboard → New → Blueprint → connect this repo → Apply. See DEPLOY.md.
+services:
+  - type: web
+    name: taskflow-under-test
+    runtime: node
+    plan: free                 # free tier: ephemeral disk (data resets on restart/redeploy/idle wake)
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true           # redeploy on every push to the default branch
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_PATH
+        value: /tmp/taskflow.db  # writable on Render; ephemeral on the free plan
+
+    # ---- To make data persistent (requires a paid instance) ----
+    # Uncomment the disk block and point DATABASE_PATH at the mount:
+    #   - key: DATABASE_PATH
+    #     value: /var/data/taskflow.db
+    # disk:
+    #   name: taskflow-data
+    #   mountPath: /var/data
+    #   sizeGB: 1

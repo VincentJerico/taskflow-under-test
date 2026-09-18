@@ -10,6 +10,9 @@ documented set of deliberately-seeded bugs and the tests that catch them.
 
 Companion to my [QA Engineering Journey](https://github.com/VincentJerico/qa-engineering-journey).
 
+<!-- After deploying, add your live URL here, e.g.:
+**Live demo:** https://taskflow-under-test.onrender.com  (free tier — first load may be slow) -->
+
 ![TaskFlow UI](docs/screenshot.png)
 
 ## Stack
@@ -60,6 +63,10 @@ npm run test:e2e      # E2E (Playwright — starts the app itself)
 ```
 - **Test strategy:** [docs/TEST-STRATEGY.md](docs/TEST-STRATEGY.md) — the pyramid, layer ownership, techniques
 - **Bugs found:** [docs/BUGS-FOUND.md](docs/BUGS-FOUND.md) — 4 seeded bugs and the tests that caught them
+
+## Deployment
+Runs on any host with a persistent Node process. A [Render](https://render.com) Blueprint
+([`render.yaml`](render.yaml)) is included — see **[DEPLOY.md](DEPLOY.md)** for the click-through steps.
 
 ## Project structure
 ```
