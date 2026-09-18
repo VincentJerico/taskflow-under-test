@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TaskFlow</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+      h1 { font-size: 1.4rem; }
+      .task { padding: .5rem; border: 1px solid #ddd; border-radius: 6px; margin: .4rem 0; }
+      .muted { color: #666; font-size: .85rem; }
+    </style>
+  </head>
+  <body>
+    <h1>TaskFlow</h1>
+    <p class="muted">Minimal UI placeholder — full UI arrives in a later milestone.</p>
+    <form id="new-task">
+      <input id="title" placeholder="New task title" aria-label="title" />
+      <button type="submit">Add</button>
+    </form>
+    <div id="tasks"></div>
+    <script>
+      const list = document.getElementById('tasks');
+      async function load() {
+        const tasks = await (await fetch('/api/tasks')).json();
+        list.innerHTML = tasks.map((t) => `<div class="task">#${t.id} ${t.title} <span class="muted">[${t.status}]</span></div>`).join('');
+      }
+      document.getElementById('new-task').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('title').value.trim();
+        if (!title) return;
+        await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title }) });
+        document.getElementById('title').value = '';
+        load();
+      });
+      load();
+    </script>
+  </body>
+</html>

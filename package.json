@@ -1,0 +1,23 @@
+{
+  "name": "taskflow-under-test",
+  "version": "0.1.0",
+  "description": "A small task-manager API/UI built to be tested end-to-end (unit + API + E2E).",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": ["qa", "testing", "express", "sqlite", "playwright"],
+  "author": "Vincent Jerico",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0",
+    "vitest": "^2.1.0"
+  }
+}
