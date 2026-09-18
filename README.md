@@ -47,7 +47,7 @@ valid `YYYY-MM-DD` · users can only access their own tasks.
 - [x] **M3 — Unit tests:** 27 validator cases (EP/BVA, incl. impossible dates)
 - [x] **M4 — API tests:** 28 cases — auth flows, full CRUD lifecycle, 401/400/404, cross-user 403 access control
 - [x] **M5 — E2E tests:** Playwright journeys (register→login→add→complete→logout, invalid login, session persistence, add/delete) + real UI
-- [ ] M6 — Seed + catch bugs (`docs/BUGS-FOUND.md`)
+- [x] **M6 — Seed + catch bugs:** 4 deliberate bugs planted & caught — see [docs/BUGS-FOUND.md](docs/BUGS-FOUND.md)
 - [ ] M7 — Docs + polish
 
 ## Testing
