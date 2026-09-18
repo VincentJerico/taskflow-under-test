@@ -6,11 +6,17 @@ const base = process.env.BASE_URL || 'http://localhost:3000';
 const creds = { username: `demo_${Date.now()}`, password: 'password123' };
 
 await fetch(`${base}/api/auth/register`, {
-  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creds),
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(creds),
 });
-const { token } = await (await fetch(`${base}/api/auth/login`, {
-  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creds),
-})).json();
+const { token } = await (
+  await fetch(`${base}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(creds),
+  })
+).json();
 const H = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
 const seed = [
@@ -19,10 +25,12 @@ const seed = [
   { title: 'Review API contract tests', status: 'todo' },
   { title: 'File bug: empty-cart checkout', status: 'todo' },
 ];
-for (const t of seed) await fetch(`${base}/api/tasks`, { method: 'POST', headers: H, body: JSON.stringify(t) });
+for (const t of seed)
+  await fetch(`${base}/api/tasks`, { method: 'POST', headers: H, body: JSON.stringify(t) });
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 560, height: 470 }, deviceScaleFactor: 2 });
+// eslint-disable-next-line no-undef -- runs in the browser context, not Node
 await page.addInitScript((t) => localStorage.setItem('tf_token', t), token);
 await page.goto(base);
 await page.waitForSelector('[data-testid="task"]');

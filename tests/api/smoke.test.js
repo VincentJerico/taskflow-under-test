@@ -26,7 +26,10 @@ describe('TaskFlow smoke', () => {
   it('authed user can create and list their tasks', async () => {
     const { token } = await registerAndLogin(app);
 
-    const created = await request(app).post('/api/tasks').set(bearer(token)).send({ title: 'Write tests' });
+    const created = await request(app)
+      .post('/api/tasks')
+      .set(bearer(token))
+      .send({ title: 'Write tests' });
     expect(created.status).toBe(201);
     expect(created.body).toMatchObject({ title: 'Write tests', status: 'todo' });
 

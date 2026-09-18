@@ -34,7 +34,10 @@ describe('Tasks API', () => {
 
   describe('create', () => {
     it('creates a task (201) with defaults', async () => {
-      const res = await request(app).post('/api/tasks').set(bearer(token)).send({ title: 'Task A' });
+      const res = await request(app)
+        .post('/api/tasks')
+        .set(bearer(token))
+        .send({ title: 'Task A' });
       expect(res.status).toBe(201);
       expect(res.body).toMatchObject({ title: 'Task A', status: 'todo', due_date: null });
     });
@@ -84,7 +87,7 @@ describe('Tasks API', () => {
       expect(res.status).toBe(404);
     });
 
-    it('only lists the current user\'s tasks', async () => {
+    it("only lists the current user's tasks", async () => {
       await request(app).post('/api/tasks').set(bearer(token)).send({ title: 'Mine 1' });
       await request(app).post('/api/tasks').set(bearer(token)).send({ title: 'Mine 2' });
       const list = await request(app).get('/api/tasks').set(bearer(token));
@@ -92,10 +95,13 @@ describe('Tasks API', () => {
     });
   });
 
-  describe('access control (a user cannot touch another user\'s task)', () => {
+  describe("access control (a user cannot touch another user's task)", () => {
     it('returns 403 on cross-user GET/PUT/DELETE', async () => {
       // User A creates a task
-      const created = await request(app).post('/api/tasks').set(bearer(token)).send({ title: 'A private task' });
+      const created = await request(app)
+        .post('/api/tasks')
+        .set(bearer(token))
+        .send({ title: 'A private task' });
       const id = created.body.id;
 
       // User B (different account) tries to access it
@@ -103,7 +109,8 @@ describe('Tasks API', () => {
 
       expect((await request(app).get(`/api/tasks/${id}`).set(bearer(tokenB))).status).toBe(403);
       expect(
-        (await request(app).put(`/api/tasks/${id}`).set(bearer(tokenB)).send({ title: 'hijack' })).status,
+        (await request(app).put(`/api/tasks/${id}`).set(bearer(tokenB)).send({ title: 'hijack' }))
+          .status,
       ).toBe(403);
       expect((await request(app).delete(`/api/tasks/${id}`).set(bearer(tokenB))).status).toBe(403);
 

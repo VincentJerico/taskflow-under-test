@@ -13,12 +13,15 @@ describe('validateTitle', () => {
   it('accepts a normal title and trims it', () => {
     expect(validateTitle('  Buy milk  ')).toEqual({ ok: true, value: 'Buy milk' });
   });
-  it.each([['', 'empty'], ['   ', 'whitespace only'], [undefined, 'undefined'], [null, 'null'], [42, 'non-string']])(
-    'rejects %s (%s)',
-    (input) => {
-      expect(validateTitle(input).ok).toBe(false);
-    },
-  );
+  it.each([
+    ['', 'empty'],
+    ['   ', 'whitespace only'],
+    [undefined, 'undefined'],
+    [null, 'null'],
+    [42, 'non-string'],
+  ])('rejects %s (%s)', (input) => {
+    expect(validateTitle(input).ok).toBe(false);
+  });
 });
 
 describe('validateStatus', () => {

@@ -16,11 +16,13 @@ Companion to my [QA Engineering Journey](https://github.com/VincentJerico/qa-eng
 ![TaskFlow UI](docs/screenshot.png)
 
 ## Stack
+
 - **App:** Node + Express + SQLite (better-sqlite3) + a minimal static UI
 - **Tests:** Vitest (unit), Supertest (API), Playwright (E2E — added later)
 - **CI:** GitHub Actions
 
 ## Run
+
 ```bash
 npm install
 npm start          # http://localhost:3000
@@ -28,25 +30,27 @@ npm test           # unit + API tests
 ```
 
 ## API
+
 Auth is token-based: `POST /api/auth/login` returns a token; send it as `Authorization: Bearer <token>`.
 All `/api/tasks` routes require auth and are **scoped to the authenticated user**.
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/health` | — | health check → `{ "status": "ok" }` |
-| POST | `/api/auth/register` | — | create account (400 missing fields, 409 taken) |
-| POST | `/api/auth/login` | — | returns `{ token }` (401 invalid credentials) |
-| POST | `/api/auth/logout` | ✓ | invalidate current token (204) |
-| GET | `/api/tasks` | ✓ | list the user's tasks |
-| GET | `/api/tasks/:id` | ✓ | get one (404 missing, 403 not owner) |
-| POST | `/api/tasks` | ✓ | create (400 invalid input) |
-| PUT | `/api/tasks/:id` | ✓ | full update (404/403/400) |
-| DELETE | `/api/tasks/:id` | ✓ | delete (204; 404/403) |
+| Method | Path                 | Auth | Description                                    |
+| ------ | -------------------- | ---- | ---------------------------------------------- |
+| GET    | `/health`            | —    | health check → `{ "status": "ok" }`            |
+| POST   | `/api/auth/register` | —    | create account (400 missing fields, 409 taken) |
+| POST   | `/api/auth/login`    | —    | returns `{ token }` (401 invalid credentials)  |
+| POST   | `/api/auth/logout`   | ✓    | invalidate current token (204)                 |
+| GET    | `/api/tasks`         | ✓    | list the user's tasks                          |
+| GET    | `/api/tasks/:id`     | ✓    | get one (404 missing, 403 not owner)           |
+| POST   | `/api/tasks`         | ✓    | create (400 invalid input)                     |
+| PUT    | `/api/tasks/:id`     | ✓    | full update (404/403/400)                      |
+| DELETE | `/api/tasks/:id`     | ✓    | delete (204; 404/403)                          |
 
 **Business rules:** title required · status ∈ {todo, doing, done} · `due_date` optional but must be a
 valid `YYYY-MM-DD` · users can only access their own tasks.
 
 ## Roadmap (milestones)
+
 - [x] **M1 — Scaffold:** app skeleton, SQLite, tasks endpoint, CI green
 - [x] **M2 — Build TaskFlow:** auth (register/login/logout), full tasks CRUD, business rules, access control
 - [x] **M3 — Unit tests:** 27 validator cases (EP/BVA, incl. impossible dates)
@@ -56,19 +60,34 @@ valid `YYYY-MM-DD` · users can only access their own tasks.
 - [x] **M7 — Docs + polish:** test strategy, README, CI badge — **project complete** ✅
 
 ## Testing
+
 59 automated tests across the pyramid — **27 unit + 28 API + 4 E2E** — all in CI.
+
 ```bash
 npm test              # unit + API (Vitest + Supertest)
 npm run test:e2e      # E2E (Playwright — starts the app itself)
 ```
+
 - **Test strategy:** [docs/TEST-STRATEGY.md](docs/TEST-STRATEGY.md) — the pyramid, layer ownership, techniques
 - **Bugs found:** [docs/BUGS-FOUND.md](docs/BUGS-FOUND.md) — 4 seeded bugs and the tests that caught them
 
+## Standards & tooling
+
+This repo follows the conventions it tests for:
+
+- **ESLint + Prettier**, enforced in CI (`npm run lint`, `npm run format:check`)
+- **Coverage** via `vitest --coverage` (src ~92%; validators/auth/middleware 100%)
+- **CI gates:** lint → unit/API (with coverage) → E2E, on every push/PR
+- **Governance:** [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md), issue/PR templates, Dependabot, MIT [LICENSE](LICENSE)
+- `.editorconfig` + `.node-version` for consistent environments
+
 ## Deployment
+
 Runs on any host with a persistent Node process. A [Render](https://render.com) Blueprint
 ([`render.yaml`](render.yaml)) is included — see **[DEPLOY.md](DEPLOY.md)** for the click-through steps.
 
 ## Project structure
+
 ```
 taskflow-under-test/
 ├── src/

@@ -5,6 +5,7 @@ This guide uses **[Render](https://render.com)** (free tier). A [`render.yaml`](
 is included, so setup is a few clicks.
 
 ## One-time deploy (Blueprint)
+
 1. Push this repo to GitHub (already done).
 2. Go to **https://dashboard.render.com** and sign in (GitHub login is easiest).
 3. **New → Blueprint**.
@@ -16,6 +17,7 @@ is included, so setup is a few clicks.
 That's it — no environment variables to set by hand (the Blueprint defines them).
 
 ## Notes & caveats
+
 - **PORT:** the app already reads `process.env.PORT`, which Render provides automatically.
 - **Free tier sleeps:** after ~15 min idle the service spins down; the next request wakes it (a slow
   first load). Fine for a demo.
@@ -28,12 +30,15 @@ That's it — no environment variables to set by hand (the Blueprint defines the
 - **Auto-deploy:** `autoDeploy: true` means every push to the default branch redeploys.
 
 ## Adding the live URL to the README
+
 After the first deploy, add the URL to the top of `README.md`, e.g.:
+
 ```md
-**Live demo:** https://taskflow-under-test.onrender.com  (free tier — first load may be slow)
+**Live demo:** https://taskflow-under-test.onrender.com (free tier — first load may be slow)
 ```
 
 ## Alternative hosts
+
 The same app runs on **Railway** or **Fly.io** with minimal changes (both support persistent Node +
 disks). Vercel is **not** recommended here: its serverless model doesn't fit an always-on Express
 server with file-based SQLite (data won't persist without swapping to a hosted DB like Turso/libSQL).
