@@ -1,6 +1,7 @@
 # TaskFlow — App Under Test
 
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
+![Tests](https://img.shields.io/badge/tests-55%20passing-success)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 A small task-manager app **built to be tested end-to-end**. The point isn't the app — it's
@@ -43,8 +44,8 @@ valid `YYYY-MM-DD` · users can only access their own tasks.
 ## Roadmap (milestones)
 - [x] **M1 — Scaffold:** app skeleton, SQLite, tasks endpoint, CI green
 - [x] **M2 — Build TaskFlow:** auth (register/login/logout), full tasks CRUD, business rules, access control
-- [ ] M3 — Unit tests (validators / logic)
-- [ ] M4 — API tests (endpoints, auth, access control)
+- [x] **M3 — Unit tests:** 27 validator cases (EP/BVA, incl. impossible dates)
+- [x] **M4 — API tests:** 28 cases — auth flows, full CRUD lifecycle, 401/400/404, cross-user 403 access control
 - [ ] M5 — E2E tests (Playwright user journeys)
 - [ ] M6 — Seed + catch bugs (`docs/BUGS-FOUND.md`)
 - [ ] M7 — Docs + polish
