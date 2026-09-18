@@ -7,16 +7,25 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
-  "keywords": ["qa", "testing", "express", "sqlite", "playwright"],
+  "keywords": [
+    "qa",
+    "testing",
+    "express",
+    "sqlite",
+    "playwright"
+  ],
   "author": "Vincent Jerico",
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "^11.3.0",
+    "better-sqlite3": "^13.0.3",
     "express": "^4.21.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
     "supertest": "^7.0.0",
     "vitest": "^2.1.0"
   }

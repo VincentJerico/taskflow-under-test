@@ -1,7 +1,7 @@
 # TaskFlow — App Under Test
 
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
-![Tests](https://img.shields.io/badge/tests-55%20passing-success)
+![Tests](https://img.shields.io/badge/tests-55%20unit%2FAPI%20%2B%204%20E2E-success)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 A small task-manager app **built to be tested end-to-end**. The point isn't the app — it's
@@ -46,8 +46,14 @@ valid `YYYY-MM-DD` · users can only access their own tasks.
 - [x] **M2 — Build TaskFlow:** auth (register/login/logout), full tasks CRUD, business rules, access control
 - [x] **M3 — Unit tests:** 27 validator cases (EP/BVA, incl. impossible dates)
 - [x] **M4 — API tests:** 28 cases — auth flows, full CRUD lifecycle, 401/400/404, cross-user 403 access control
-- [ ] M5 — E2E tests (Playwright user journeys)
+- [x] **M5 — E2E tests:** Playwright journeys (register→login→add→complete→logout, invalid login, session persistence, add/delete) + real UI
 - [ ] M6 — Seed + catch bugs (`docs/BUGS-FOUND.md`)
 - [ ] M7 — Docs + polish
+
+## Testing
+```bash
+npm test              # unit + API (Vitest + Supertest)
+npm run test:e2e      # E2E (Playwright — starts the app itself)
+```
 
 Plan: see `taskflow-under-test-plan.md` in the journey repo's `10-projects/`.

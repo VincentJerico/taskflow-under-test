@@ -5,35 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>TaskFlow</title>
     <style>
-      body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
-      h1 { font-size: 1.4rem; }
-      .task { padding: .5rem; border: 1px solid #ddd; border-radius: 6px; margin: .4rem 0; }
+      body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+      h1 { font-size: 1.5rem; }
+      input, button { font: inherit; padding: .5rem .6rem; border-radius: 6px; border: 1px solid #ccc; }
+      button { cursor: pointer; background: #2d7; border-color: #2d7; }
+      button.secondary { background: #eee; border-color: #ccc; }
+      .row { display: flex; gap: .5rem; margin: .5rem 0; flex-wrap: wrap; }
+      .task { display: flex; align-items: center; gap: .6rem; padding: .5rem; border: 1px solid #e2e2e2; border-radius: 6px; margin: .4rem 0; }
+      .task.done .title { text-decoration: line-through; color: #888; }
+      .task .title { flex: 1; }
+      .error { color: #c00; min-height: 1.2em; }
+      .hidden { display: none; }
       .muted { color: #666; font-size: .85rem; }
+      .spacer { flex: 1; }
     </style>
   </head>
   <body>
     <h1>TaskFlow</h1>
-    <p class="muted">Minimal UI placeholder — full UI arrives in a later milestone.</p>
-    <form id="new-task">
-      <input id="title" placeholder="New task title" aria-label="title" />
-      <button type="submit">Add</button>
-    </form>
-    <div id="tasks"></div>
+
+    <!-- Auth view -->
+    <section id="auth-view" data-testid="auth-view">
+      <p class="muted">Register or log in to manage your tasks.</p>
+      <div class="row">
+        <input id="username" data-testid="username" placeholder="username" autocomplete="username" />
+        <input id="password" data-testid="password" type="password" placeholder="password" autocomplete="current-password" />
+      </div>
+      <div class="row">
+        <button data-testid="register-btn" id="register-btn">Register</button>
+        <button data-testid="login-btn" id="login-btn" class="secondary">Log in</button>
+      </div>
+      <p class="error" data-testid="auth-error" id="auth-error"></p>
+    </section>
+
+    <!-- App view -->
+    <section id="app-view" class="hidden" data-testid="app-view">
+      <div class="row">
+        <span class="muted" data-testid="whoami" id="whoami"></span>
+        <span class="spacer"></span>
+        <button class="secondary" data-testid="logout-btn" id="logout-btn">Log out</button>
+      </div>
+      <div class="row">
+        <input id="new-task" data-testid="new-task-title" placeholder="New task title" style="flex:1" />
+        <button data-testid="add-task-btn" id="add-task-btn">Add</button>
+      </div>
+      <div id="task-list" data-testid="task-list"></div>
+      <p class="muted" data-testid="empty" id="empty">No tasks yet.</p>
+    </section>
+
     <script>
-      const list = document.getElementById('tasks');
-      async function load() {
-        const tasks = await (await fetch('/api/tasks')).json();
-        list.innerHTML = tasks.map((t) => `<div class="task">#${t.id} ${t.title} <span class="muted">[${t.status}]</span></div>`).join('');
+      const $ = (id) => document.getElementById(id);
+      const token = () => localStorage.getItem('tf_token');
+      const setToken = (t) => (t ? localStorage.setItem('tf_token', t) : localStorage.removeItem('tf_token'));
+      const authHeaders = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` });
+
+      function showAuth() { $('auth-view').classList.remove('hidden'); $('app-view').classList.add('hidden'); }
+      function showApp() { $('auth-view').classList.add('hidden'); $('app-view').classList.remove('hidden'); load(); }
+
+      async function register() {
+        $('auth-error').textContent = '';
+        const res = await fetch('/api/auth/register', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: $('username').value, password: $('password').value }),
+        });
+        if (!res.ok) { $('auth-error').textContent = (await res.json()).error || 'Registration failed'; return; }
+        await login();
       }
-      document.getElementById('new-task').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const title = document.getElementById('title').value.trim();
+
+      async function login() {
+        $('auth-error').textContent = '';
+        const res = await fetch('/api/auth/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: $('username').value, password: $('password').value }),
+        });
+        if (!res.ok) { $('auth-error').textContent = 'Invalid credentials'; return; }
+        setToken((await res.json()).token);
+        $('whoami').textContent = 'Signed in as ' + $('username').value;
+        showApp();
+      }
+
+      async function logout() {
+        await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() });
+        setToken(null);
+        showAuth();
+      }
+
+      async function load() {
+        const res = await fetch('/api/tasks', { headers: authHeaders() });
+        if (res.status === 401) { setToken(null); return showAuth(); }
+        const tasks = await res.json();
+        $('empty').classList.toggle('hidden', tasks.length > 0);
+        $('task-list').innerHTML = '';
+        for (const t of tasks) {
+          const div = document.createElement('div');
+          div.className = 'task' + (t.status === 'done' ? ' done' : '');
+          div.dataset.testid = 'task';
+          div.dataset.id = t.id;
+          div.innerHTML =
+            `<input type="checkbox" data-testid="toggle" ${t.status === 'done' ? 'checked' : ''} />` +
+            `<span class="title" data-testid="task-title">${t.title}</span>` +
+            `<button class="secondary" data-testid="delete">Delete</button>`;
+          div.querySelector('[data-testid=toggle]').addEventListener('change', () => toggle(t));
+          div.querySelector('[data-testid=delete]').addEventListener('click', () => remove(t.id));
+          $('task-list').appendChild(div);
+        }
+      }
+
+      async function add() {
+        const title = $('new-task').value.trim();
         if (!title) return;
-        await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title }) });
-        document.getElementById('title').value = '';
+        await fetch('/api/tasks', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ title }) });
+        $('new-task').value = '';
         load();
-      });
-      load();
+      }
+
+      async function toggle(t) {
+        await fetch('/api/tasks/' + t.id, {
+          method: 'PUT', headers: authHeaders(),
+          body: JSON.stringify({ title: t.title, status: t.status === 'done' ? 'todo' : 'done', due_date: t.due_date }),
+        });
+        load();
+      }
+
+      async function remove(id) {
+        await fetch('/api/tasks/' + id, { method: 'DELETE', headers: authHeaders() });
+        load();
+      }
+
+      $('register-btn').addEventListener('click', register);
+      $('login-btn').addEventListener('click', login);
+      $('logout-btn').addEventListener('click', logout);
+      $('add-task-btn').addEventListener('click', add);
+      $('new-task').addEventListener('keydown', (e) => { if (e.key === 'Enter') add(); });
+
+      // Restore session if a token exists.
+      if (token()) showApp(); else showAuth();
     </script>
   </body>
 </html>
