@@ -18,8 +18,8 @@ async function registerAndEnter(page) {
   return username;
 }
 
-test('register → login → add task → complete → logout', async ({ page }) => {
-  await registerAndEnter(page);
+test('register → add task → complete → logout → log back in → reopen', async ({ page }) => {
+  const username = await registerAndEnter(page);
 
   // add a task
   await page.getByTestId('new-task-title').fill('Buy groceries');
@@ -32,9 +32,25 @@ test('register → login → add task → complete → logout', async ({ page })
   await task.getByTestId('toggle').check();
   await expect(task).toHaveClass(/done/);
 
-  // logout returns to the auth view
+  // logout returns to the auth view and revokes the token server-side
+  const oldToken = await page.evaluate(() => localStorage.getItem('tf_token'));
   await page.getByTestId('logout-btn').click();
   await expect(page.getByTestId('auth-view')).toBeVisible();
+  const withOldToken = await page.request.get('/api/tasks', {
+    headers: { Authorization: `Bearer ${oldToken}` },
+  });
+  expect(withOldToken.status()).toBe(401);
+
+  // logging back in shows the task still done, and unchecking reopens it
+  await page.getByTestId('username').fill(username);
+  await page.getByTestId('password').fill('pw123456');
+  await page.getByTestId('login-btn').click();
+  await expect(task).toHaveClass(/done/);
+  await expect(task.getByTestId('toggle')).toBeChecked();
+
+  await task.getByTestId('toggle').uncheck();
+  await expect(task).not.toHaveClass(/done/);
+  await expect(task.getByTestId('toggle')).not.toBeChecked();
 });
 
 test('invalid login shows an error', async ({ page }) => {
