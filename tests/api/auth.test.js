@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app.js';
 import { createDb } from '../../src/db.js';
-import { bearer } from '../helpers.js';
+import { registerAndLogin, bearer } from '../helpers.js';
 
 /** Milestone 4 — Auth API coverage. */
 describe('Auth API', () => {
@@ -16,7 +16,7 @@ describe('Auth API', () => {
       .post('/api/auth/register')
       .send({ username: 'alice', password: 'pw123456' });
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ username: 'alice' });
+    expect(res.body).toEqual({ id: expect.any(Number), username: 'alice' });
     expect(res.body.id).toBeGreaterThan(0);
   });
 
@@ -24,6 +24,8 @@ describe('Auth API', () => {
     [{ username: 'x' }, 'missing password'],
     [{ password: 'y' }, 'missing username'],
     [{}, 'both missing'],
+    [{ username: '', password: 'y' }, 'empty username'],
+    [{ username: 'x', password: '' }, 'empty password'],
   ])('rejects registration with %s → 400', async (body) => {
     const res = await request(app).post('/api/auth/register').send(body);
     expect(res.status).toBe(400);
@@ -73,5 +75,15 @@ describe('Auth API', () => {
     expect((await request(app).post('/api/auth/logout').set(bearer(token))).status).toBe(204);
     // token no longer works
     expect((await request(app).get('/api/tasks').set(bearer(token))).status).toBe(401);
+  });
+
+  it('logout invalidates only the current session', async () => {
+    const { token: first, username, password } = await registerAndLogin(app);
+    const { body } = await request(app).post('/api/auth/login').send({ username, password });
+    const second = body.token;
+
+    expect((await request(app).post('/api/auth/logout').set(bearer(first))).status).toBe(204);
+    expect((await request(app).get('/api/tasks').set(bearer(first))).status).toBe(401);
+    expect((await request(app).get('/api/tasks').set(bearer(second))).status).toBe(200);
   });
 });

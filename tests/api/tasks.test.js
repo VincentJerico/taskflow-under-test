@@ -42,6 +42,19 @@ describe('Tasks API', () => {
       expect(res.body).toMatchObject({ title: 'Task A', status: 'todo', due_date: null });
     });
 
+    it('stores the trimmed title, status and due_date it was given', async () => {
+      const expected = { title: 'Task B', status: 'doing', due_date: '2026-10-05' };
+      const res = await request(app)
+        .post('/api/tasks')
+        .set(bearer(token))
+        .send({ ...expected, title: '  Task B  ' });
+      expect(res.status).toBe(201);
+      expect(res.body).toMatchObject(expected);
+
+      const got = await request(app).get(`/api/tasks/${res.body.id}`).set(bearer(token));
+      expect(got.body).toMatchObject(expected);
+    });
+
     it.each([
       [{}, 'missing title'],
       [{ title: '   ' }, 'blank title'],
@@ -82,16 +95,41 @@ describe('Tasks API', () => {
       expect((await request(app).get(`/api/tasks/${id}`).set(bearer(token))).status).toBe(404);
     });
 
-    it('returns 404 for a non-existent task', async () => {
-      const res = await request(app).get('/api/tasks/99999').set(bearer(token));
+    it.each(['get', 'put', 'delete'])('%s on a non-existent task → 404', async (method) => {
+      const req = request(app)[method]('/api/tasks/99999').set(bearer(token));
+      const res = await req.send({ title: 'ok' });
       expect(res.status).toBe(404);
     });
 
     it("only lists the current user's tasks", async () => {
       await request(app).post('/api/tasks').set(bearer(token)).send({ title: 'Mine 1' });
       await request(app).post('/api/tasks').set(bearer(token)).send({ title: 'Mine 2' });
+      const { token: tokenB } = await registerAndLogin(app);
+      await request(app).post('/api/tasks').set(bearer(tokenB)).send({ title: 'Theirs' });
+
       const list = await request(app).get('/api/tasks').set(bearer(token));
-      expect(list.body).toHaveLength(2);
+      expect(list.body.map((t) => t.title)).toEqual(['Mine 1', 'Mine 2']);
+    });
+  });
+
+  describe('update validation', () => {
+    it.each([
+      [{}, 'missing title'],
+      [{ title: '   ' }, 'blank title'],
+      [{ title: 'ok', status: 'bogus' }, 'invalid status'],
+      [{ title: 'ok', due_date: '2026-02-31' }, 'impossible date'],
+    ])('rejects invalid update %s → 400 and leaves the task unchanged', async (body) => {
+      const created = await request(app)
+        .post('/api/tasks')
+        .set(bearer(token))
+        .send({ title: 'Original', status: 'doing', due_date: '2026-10-05' });
+      const id = created.body.id;
+
+      const res = await request(app).put(`/api/tasks/${id}`).set(bearer(token)).send(body);
+      expect(res.status).toBe(400);
+
+      const got = await request(app).get(`/api/tasks/${id}`).set(bearer(token));
+      expect(got.body).toEqual(created.body);
     });
   });
 
