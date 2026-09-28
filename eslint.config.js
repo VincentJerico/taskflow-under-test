@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import globals from 'globals';
+import playwright from 'eslint-plugin-playwright';
 
 /** Flat ESLint config (ESLint v9). */
 export default [
@@ -24,6 +25,23 @@ export default [
       'no-console': 'off',
       eqeqeq: ['error', 'smart'],
       'prefer-const': 'error',
+    },
+  },
+  {
+    files: ['tests/e2e/**'],
+    ...playwright.configs['flat/recommended'],
+    rules: {
+      ...playwright.configs['flat/recommended'].rules,
+      'playwright/expect-expect': ['error', { assertFunctionPatterns: ['^expect[A-Z]'] }],
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'test',
+          property: 'fail',
+          message:
+            'test.fail absorbs unrelated failures; assert the current behavior and annotate the issue.',
+        },
+      ],
     },
   },
 ];
