@@ -97,9 +97,9 @@ taskflow-under-test/
 │   └── middleware/  requireAuth.js
 ├── public/index.html          # auth + tasks UI (data-testid hooks for E2E)
 ├── tests/
-│   ├── unit/     validators.test.js        (27)
-│   ├── api/      smoke / auth / tasks       (28)
-│   └── e2e/      journey.spec.js            (4)
+│   ├── unit/     *.test.js — validators, auth
+│   ├── api/      smoke / auth / tasks
+│   └── e2e/      journey.spec.js
 ├── docs/         TEST-STRATEGY.md  BUGS-FOUND.md
 └── .github/workflows/ci.yml    # lint job · unit+API job · E2E job
 ```
