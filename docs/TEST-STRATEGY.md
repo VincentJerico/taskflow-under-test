@@ -32,7 +32,8 @@ Total: **55 unit/API + 4 E2E = 59 automated tests**, all in CI.
 - **Dependency-injected DB** (`createApp(db)`) → every API test runs against a fresh **in-memory**
   SQLite database. No shared state, no cleanup, no flakiness.
 - **Pure validators** in `src/validators.js` → logic is unit-testable without spinning up Express.
-- **Playwright `webServer`** starts the app itself against a throwaway DB → E2E needs no manual setup.
+- **Playwright `webServer`** starts the app itself against an `e2e.db` file that persists between
+  runs → E2E needs no manual setup.
 - **Unique usernames per test** → tests are independent even against a persistent E2E DB.
 
 ## Techniques used

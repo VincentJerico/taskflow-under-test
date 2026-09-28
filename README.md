@@ -5,7 +5,7 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 A small task-manager app **built to be tested end-to-end**. The point isn't the app — it's
-demonstrating the full testing workflow on software I own: **unit → API → E2E → performance**, plus a
+demonstrating the full testing workflow on software I own: **unit → API → E2E**, plus a
 documented set of deliberately-seeded bugs and the tests that catch them.
 
 Companion to my [QA Engineering Journey](https://github.com/VincentJerico/qa-engineering-journey).
@@ -18,7 +18,7 @@ Companion to my [QA Engineering Journey](https://github.com/VincentJerico/qa-eng
 ## Stack
 
 - **App:** Node + Express + SQLite (better-sqlite3) + a minimal static UI
-- **Tests:** Vitest (unit), Supertest (API), Playwright (E2E — added later)
+- **Tests:** Vitest (unit), Supertest (API), Playwright (E2E)
 - **CI:** GitHub Actions
 
 ## Run
@@ -76,8 +76,9 @@ npm run test:e2e      # E2E (Playwright — starts the app itself)
 This repo follows the conventions it tests for:
 
 - **ESLint + Prettier**, enforced in CI (`npm run lint`, `npm run format:check`)
-- **Coverage** via `vitest --coverage` (src ~92%; validators/auth/middleware 100%)
-- **CI gates:** lint → unit/API (with coverage) → E2E, on every push/PR
+- **Coverage** via `npm run test:coverage`; see the HTML report at `coverage/index.html`
+- **CI:** three parallel jobs on every push/PR (lint + format, unit/API with coverage, E2E); coverage
+  is reported, not gated
 - **Governance:** [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md), issue/PR templates, Dependabot, MIT [LICENSE](LICENSE)
 - `.editorconfig` + `.node-version` for consistent environments
 
@@ -100,7 +101,7 @@ taskflow-under-test/
 │   ├── api/      smoke / auth / tasks       (28)
 │   └── e2e/      journey.spec.js            (4)
 ├── docs/         TEST-STRATEGY.md  BUGS-FOUND.md
-└── .github/workflows/ci.yml    # unit+API job · E2E job
+└── .github/workflows/ci.yml    # lint job · unit+API job · E2E job
 ```
 
 Plan: see `taskflow-under-test-plan.md` in the journey repo's `10-projects/`.
