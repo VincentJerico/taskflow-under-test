@@ -1,7 +1,7 @@
 # TaskFlow — App Under Test
 
 [![CI](https://github.com/VincentJerico/taskflow-under-test/actions/workflows/ci.yml/badge.svg)](https://github.com/VincentJerico/taskflow-under-test/actions/workflows/ci.yml)
-![Tests](https://img.shields.io/badge/tests-55%20unit%2FAPI%20%2B%204%20E2E-success)
+![Tests](https://img.shields.io/badge/tests-unit%20%C2%B7%20API%20%C2%B7%20E2E-success)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 A small task-manager app **built to be tested end-to-end**. The point isn't the app — it's
@@ -61,7 +61,7 @@ valid `YYYY-MM-DD` · users can only access their own tasks.
 
 ## Testing
 
-59 automated tests across the pyramid — **27 unit + 28 API + 4 E2E** — all in CI.
+Automated tests across the whole pyramid (**unit, API and E2E**), all in CI.
 
 ```bash
 npm test              # unit + API (Vitest + Supertest)

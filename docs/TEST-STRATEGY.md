@@ -6,15 +6,15 @@ the cheapest layer that can catch its class of bug.
 ## The test pyramid (as applied here)
 
 ```
-        ╱  E2E (Playwright)  ╲        4 tests  — real browser user journeys
+        ╱  E2E (Playwright)  ╲        fewest — real browser user journeys
        ╱─────────────────────╲
-      ╱   API (Supertest)     ╲      28 tests  — HTTP contract, auth, access control
+      ╱   API (Supertest)     ╲      more    — HTTP contract, auth, access control
      ╱─────────────────────────╲
-    ╱   Unit (Vitest)           ╲    27 tests  — pure validation/logic, EP + BVA
+    ╱   Unit (Vitest)           ╲    most    — pure validation/logic, EP + BVA
    ╱─────────────────────────────╲
 ```
 
-Total: **55 unit/API + 4 E2E = 59 automated tests**, all in CI.
+Every layer runs in CI. `npx vitest run` and `npx playwright test --list` give the current counts.
 
 ## What each layer owns
 
