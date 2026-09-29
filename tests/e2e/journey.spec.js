@@ -65,7 +65,9 @@ test('a task title is shown as text, not parsed as HTML', async ({ page }) => {
   await page.getByTestId('add-task-btn').click();
 
   await expect(page.getByTestId('task-title')).toHaveText(title);
-  expect(await page.evaluate(() => globalThis.__xss)).toBeUndefined();
+  // HTML parsing is synchronous, so a parsed title's <img> would already be in the page. Checking
+  // for its onerror handler having run instead would race the image request.
+  await expect(page.locator('img[onerror]')).toHaveCount(0);
 });
 
 test('add two tasks then delete one', async ({ page }) => {
