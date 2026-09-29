@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { hashPassword, verifyPassword } from '../../src/auth.js';
 
 describe('hashPassword', () => {
-  it('does not store the password in a reversible form', () => {
-    const { hash } = hashPassword('pw123456');
-    expect(hash).not.toBe(Buffer.from('pw123456').toString('hex'));
+  it('produces a fixed-length digest whatever the password length', () => {
+    // An encoding (hex, base64, XOR) grows with its input and can be decoded; a digest does neither.
+    const short = hashPassword('a').hash;
+    const long = hashPassword('a'.repeat(200)).hash;
+    expect(long).toHaveLength(short.length);
   });
 
   it('salts each hash, so the same password hashes differently twice', () => {
