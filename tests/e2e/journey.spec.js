@@ -18,6 +18,15 @@ async function registerAndEnter(page) {
   return username;
 }
 
+/** The status the server has stored for the signed-in user's task with this title. */
+async function storedStatus(page, title) {
+  const token = await page.evaluate(() => localStorage.getItem('tf_token'));
+  const res = await page.request.get('/api/tasks', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return (await res.json()).find((t) => t.title === title)?.status;
+}
+
 test('register → add task → complete → logout → log back in → reopen', async ({ page }) => {
   const username = await registerAndEnter(page);
 
@@ -45,12 +54,16 @@ test('register → add task → complete → logout → log back in → reopen',
   await page.getByTestId('username').fill(username);
   await page.getByTestId('password').fill('pw123456');
   await page.getByTestId('login-btn').click();
+  await expect(page.getByTestId('app-view')).toBeVisible();
+  // Logout only hides the old list, so reload to render the list the server returns.
+  await page.reload();
   await expect(task).toHaveClass(/done/);
   await expect(task.getByTestId('toggle')).toBeChecked();
 
   await task.getByTestId('toggle').uncheck();
   await expect(task).not.toHaveClass(/done/);
   await expect(task.getByTestId('toggle')).not.toBeChecked();
+  await expect.poll(() => storedStatus(page, 'Buy groceries')).toBe('todo');
 });
 
 test('invalid login shows an error', async ({ page }) => {
