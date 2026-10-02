@@ -3,7 +3,8 @@ import request from 'supertest';
 let counter = 0;
 
 /** Register a fresh user and return an auth token + credentials. */
-export async function registerAndLogin(app, password = 'pw123456') {
+export async function registerAndLogin(app) {
+  const password = 'pw123456';
   const username = `user_${Date.now()}_${counter++}`;
   await request(app).post('/api/auth/register').send({ username, password });
   const res = await request(app).post('/api/auth/login').send({ username, password });
