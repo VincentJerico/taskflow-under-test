@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * E2E config. Playwright starts the app itself (webServer) against a throwaway SQLite file, then runs
- * browser journeys against it. Tests register unique users, so a persistent DB file is harmless.
+ * E2E config. Playwright starts the app itself (webServer) against e2e.db, a SQLite file kept between
+ * runs, then runs browser journeys against it. Tests register unique users, so the leftover data is
+ * harmless.
  */
 export default defineConfig({
   testDir: './tests/e2e',
