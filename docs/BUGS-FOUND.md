@@ -67,6 +67,7 @@ victim's data is untouched. **Fix:** restore the ownership check.
 × rejects impossible calendar date 2026-13-01 (month 13)             → expected true to be false
 × rejects impossible calendar date 2026-00-10 (month 0)              → expected true to be false
 × rejects impossible calendar date 2026-04-31 (April has 30 days)    → expected true to be false
+× validateTaskInput > propagates a due_date error                    → expected true to be false
 ```
 
 **Impact:** impossible dates enter the data store. **Fix:** restore the `Date` round-trip check.
