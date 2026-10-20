@@ -189,8 +189,9 @@
           div.dataset.id = t.id;
           div.innerHTML =
             `<input type="checkbox" data-testid="toggle" ${t.status === 'done' ? 'checked' : ''} />` +
-            `<span class="title" data-testid="task-title">${t.title}</span>` +
+            `<span class="title" data-testid="task-title"></span>` +
             `<button class="secondary" data-testid="delete">Delete</button>`;
+          div.querySelector('[data-testid=task-title]').textContent = t.title;
           div.querySelector('[data-testid=toggle]').addEventListener('change', () => toggle(t));
           div.querySelector('[data-testid=delete]').addEventListener('click', () => remove(t.id));
           $('task-list').appendChild(div);

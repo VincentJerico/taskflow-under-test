@@ -58,6 +58,18 @@ test('session persists across a page reload', async ({ page }) => {
   await expect(page.getByTestId('task').filter({ hasText: 'Persist me' })).toBeVisible();
 });
 
+test('a task title is shown as text, not parsed as HTML', async ({ page }) => {
+  const title = '<img src=x onerror="window.__xss=1">';
+  await registerAndEnter(page);
+  await page.getByTestId('new-task-title').fill(title);
+  await page.getByTestId('add-task-btn').click();
+
+  await expect(page.getByTestId('task-title')).toHaveText(title);
+  // HTML parsing is synchronous, so a parsed title's <img> would already be in the page. Checking
+  // for its onerror handler having run instead would race the image request.
+  await expect(page.locator('img[onerror]')).toHaveCount(0);
+});
+
 test('add two tasks then delete one', async ({ page }) => {
   await registerAndEnter(page);
   for (const title of ['Task one', 'Task two']) {

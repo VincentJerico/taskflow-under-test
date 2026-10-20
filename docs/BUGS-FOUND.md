@@ -71,6 +71,21 @@ victim's data is untouched. **Fix:** restore the ownership check.
 
 **Impact:** impossible dates enter the data store. **Fix:** restore the `Date` round-trip check.
 
+## Found by audit — stored XSS in task titles
+
+Not seeded. A later test audit found this real bug, which the suite above did not catch.
+
+**Bug:** the UI rendered each task title through `innerHTML`, so a title is parsed as HTML.
+**Caught by:** `tests/e2e/journey.spec.js` — a title of `<img src=x onerror="window.__xss=1">`.
+
+```
+× a task title is shown as text, not parsed as HTML
+  → Expected: "<img src=x onerror=\"window.__xss=1\">"  Received: ""
+```
+
+**Impact:** script in a title runs every time the list loads, and can read the session token from
+`localStorage`. **Fix:** set the title with `textContent`.
+
 ---
 
 ## Takeaways
