@@ -1,25 +1,25 @@
-# TaskFlow — App Under Test
+# TaskFlow, an app built to be tested
 
 [![CI](https://github.com/VincentJerico/taskflow-under-test/actions/workflows/ci.yml/badge.svg)](https://github.com/VincentJerico/taskflow-under-test/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-unit%20%C2%B7%20API%20%C2%B7%20E2E-success)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-A small task-manager app **built to be tested end-to-end**. The point isn't the app — it's
-demonstrating the full testing workflow on software I own: **unit → API → E2E**, plus a
-documented set of deliberately-seeded bugs and the tests that catch them.
+TaskFlow is a small task manager I built so I could test software I own from end to end. The app
+is deliberately simple. The point is the testing around it: unit, API and E2E suites, plus a set
+of bugs I planted on purpose and the tests that catch them.
 
-Companion to my [QA Engineering Journey](https://github.com/VincentJerico/qa-engineering-journey).
+It's a companion to my [QA Engineering Journey](https://github.com/VincentJerico/qa-engineering-journey).
 
 <!-- After deploying, add your live URL here, e.g.:
-**Live demo:** https://taskflow-under-test.onrender.com  (free tier — first load may be slow) -->
+**Live demo:** https://taskflow-under-test.onrender.com  (free tier, so the first load may be slow) -->
 
 ![TaskFlow UI](docs/screenshot.png)
 
 ## Stack
 
-- **App:** Node + Express + SQLite (better-sqlite3) + a minimal static UI
-- **Tests:** Vitest (unit), Supertest (API), Playwright (E2E)
-- **CI:** GitHub Actions
+The app is Node and Express with SQLite (better-sqlite3) and a single static HTML page for the UI.
+Vitest runs the unit tests, Supertest the API tests and Playwright the E2E tests. GitHub Actions
+runs all of them.
 
 ## Run
 
@@ -31,61 +31,68 @@ npm test           # unit + API tests
 
 ## API
 
-Auth is token-based: `POST /api/auth/login` returns a token; send it as `Authorization: Bearer <token>`.
-All `/api/tasks` routes require auth and are **scoped to the authenticated user**.
+Auth uses tokens. `POST /api/auth/login` returns a token, which you send as
+`Authorization: Bearer <token>`. Every `/api/tasks` route needs a token and only works on the
+signed-in user's own tasks.
 
 | Method | Path                 | Auth | Description                                    |
 | ------ | -------------------- | ---- | ---------------------------------------------- |
-| GET    | `/health`            | —    | health check → `{ "status": "ok" }`            |
-| POST   | `/api/auth/register` | —    | create account (400 missing fields, 409 taken) |
-| POST   | `/api/auth/login`    | —    | returns `{ token }` (401 invalid credentials)  |
-| POST   | `/api/auth/logout`   | ✓    | invalidate current token (204)                 |
-| GET    | `/api/tasks`         | ✓    | list the user's tasks                          |
-| GET    | `/api/tasks/:id`     | ✓    | get one (404 missing, 403 not owner)           |
-| POST   | `/api/tasks`         | ✓    | create (400 invalid input)                     |
-| PUT    | `/api/tasks/:id`     | ✓    | full update (404/403/400)                      |
-| DELETE | `/api/tasks/:id`     | ✓    | delete (204; 404/403)                          |
+| GET    | `/health`            | no   | health check, returns `{ "status": "ok" }`     |
+| POST   | `/api/auth/register` | no   | create account (400 missing fields, 409 taken) |
+| POST   | `/api/auth/login`    | no   | returns `{ token }` (401 invalid credentials)  |
+| POST   | `/api/auth/logout`   | yes  | invalidate current token (204)                 |
+| GET    | `/api/tasks`         | yes  | list the user's tasks                          |
+| GET    | `/api/tasks/:id`     | yes  | get one (404 missing, 403 not owner)           |
+| POST   | `/api/tasks`         | yes  | create (400 invalid input)                     |
+| PUT    | `/api/tasks/:id`     | yes  | full update (404, 403 or 400)                  |
+| DELETE | `/api/tasks/:id`     | yes  | delete (204, or 404 or 403)                    |
 
-**Business rules:** title required · status ∈ {todo, doing, done} · `due_date` optional but must be a
-valid `YYYY-MM-DD` · users can only access their own tasks.
-
-## Roadmap (milestones)
-
-- [x] **M1 — Scaffold:** app skeleton, SQLite, tasks endpoint, CI green
-- [x] **M2 — Build TaskFlow:** auth (register/login/logout), full tasks CRUD, business rules, access control
-- [x] **M3 — Unit tests:** 27 validator cases (EP/BVA, incl. impossible dates)
-- [x] **M4 — API tests:** 28 cases — auth flows, full CRUD lifecycle, 401/400/404, cross-user 403 access control
-- [x] **M5 — E2E tests:** Playwright journeys (register→login→add→complete→logout, invalid login, session persistence, add/delete) + real UI
-- [x] **M6 — Seed + catch bugs:** 4 deliberate bugs planted & caught — see [docs/BUGS-FOUND.md](docs/BUGS-FOUND.md)
-- [x] **M7 — Docs + polish:** test strategy, README, CI badge — **project complete** ✅
+The rules are simple. A title is required, status is one of `todo`, `doing` or `done`, `due_date`
+is optional but must be a real `YYYY-MM-DD` date, and users can only reach their own tasks.
 
 ## Testing
 
-Automated tests across the whole pyramid (**unit, API and E2E**), all in CI.
+Every layer runs in CI.
 
 ```bash
 npm test              # unit + API (Vitest + Supertest)
-npm run test:e2e      # E2E (Playwright — starts the app itself)
+npm run test:e2e      # E2E (Playwright starts the app itself)
 ```
 
-- **Test strategy:** [docs/TEST-STRATEGY.md](docs/TEST-STRATEGY.md) — the pyramid, layer ownership, techniques
-- **Bugs found:** [docs/BUGS-FOUND.md](docs/BUGS-FOUND.md) — 4 seeded bugs and the tests that caught them
+- [docs/TEST-STRATEGY.md](docs/TEST-STRATEGY.md) explains the test pyramid, what each layer owns
+  and the techniques used.
+- [docs/BUGS-FOUND.md](docs/BUGS-FOUND.md) covers the 4 seeded bugs and the tests that caught them,
+  plus a real stored XSS found in a later test audit.
 
-## Standards & tooling
+## How it was built
 
-This repo follows the conventions it tests for:
+I built it in seven milestones. The counts below are what each milestone added at the time.
 
-- **ESLint + Prettier**, enforced in CI (`npm run lint`, `npm run format:check`)
-- **Coverage** via `npm run test:coverage`; see the HTML report at `coverage/index.html`
-- **CI:** three parallel jobs on every push/PR (lint + format, unit/API with coverage, E2E); coverage
-  is reported, not gated
-- **Governance:** [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md), issue/PR templates, Dependabot, MIT [LICENSE](LICENSE)
-- `.editorconfig` + `.node-version` for consistent environments
+1. Scaffold: app skeleton, SQLite, a tasks endpoint and green CI.
+2. The app: register, log in and log out, full task CRUD, the business rules and access control.
+3. Unit tests: 27 validator cases using equivalence partitioning and boundary values, including
+   impossible dates.
+4. API tests: 28 cases covering auth, the full CRUD lifecycle, 400/401/404 responses and the 403
+   for another user's task.
+5. E2E tests: Playwright journeys for the main flow, a failed login, a session that survives a
+   reload, and adding and deleting tasks.
+6. Seeded bugs: 4 planted bugs, each caught by a test (see [docs/BUGS-FOUND.md](docs/BUGS-FOUND.md)).
+7. Docs: the test strategy, this README and the CI badge.
+
+## Standards and tooling
+
+- ESLint and Prettier, both enforced in CI (`npm run lint`, `npm run format:check`).
+- Coverage with `npm run test:coverage`. The HTML report is at `coverage/index.html`.
+- CI runs three parallel jobs on every push and PR: lint and format, unit and API tests with
+  coverage, and E2E. Coverage is reported, not gated.
+- [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md), issue and PR templates, Dependabot and
+  an MIT [LICENSE](LICENSE).
+- `.editorconfig` and `.node-version` keep environments consistent.
 
 ## Deployment
 
-Runs on any host with a persistent Node process. A [Render](https://render.com) Blueprint
-([`render.yaml`](render.yaml)) is included — see **[DEPLOY.md](DEPLOY.md)** for the click-through steps.
+It runs on any host that keeps a Node process alive. A [Render](https://render.com) Blueprint
+([`render.yaml`](render.yaml)) is included, and [DEPLOY.md](DEPLOY.md) walks through the steps.
 
 ## Project structure
 
@@ -104,4 +111,5 @@ taskflow-under-test/
 └── .github/workflows/ci.yml    # lint job · unit+API job · E2E job
 ```
 
-Plan: see `taskflow-under-test-plan.md` in the journey repo's `10-projects/`.
+The original plan is in the journey repo:
+[TaskFlow project brief](https://github.com/VincentJerico/qa-engineering-journey/blob/main/10-projects/taskflow-under-test-plan.md).
