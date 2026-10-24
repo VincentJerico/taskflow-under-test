@@ -12,7 +12,9 @@ vincentjericoalcuran@gmail.com. Please avoid sharing exploit details publicly un
 
 ## Known, intentional limitations (demo scope)
 
-- No rate limiting / account lockout on auth endpoints.
+- Auth rate limiting is per client IP and kept in memory, so it resets on restart and isn't shared
+  between processes. There is no per-account lockout. Behind a reverse proxy (e.g. Render), Express
+  needs `trust proxy` set or every client shares the proxy's IP; this isn't configured yet.
 - Tokens are opaque DB-backed sessions without expiry.
 - HTTPS/security headers are the host's responsibility (see DEPLOY.md).
 
