@@ -35,6 +35,10 @@ Auth uses tokens. `POST /api/auth/login` returns a token, which you send as
 `Authorization: Bearer <token>`. Every `/api/tasks` route needs a token and only works on the
 signed-in user's own tasks.
 
+Register and login share a rate limit of 20 requests per minute per client IP. Past that they
+answer `429` with a `Retry-After` header. Set `AUTH_RATE_LIMIT` to change the limit, or to `0` to
+turn it off; load tests do that so they measure the server, not the limiter.
+
 | Method | Path                 | Auth | Description                                    |
 | ------ | -------------------- | ---- | ---------------------------------------------- |
 | GET    | `/health`            | no   | health check, returns `{ "status": "ok" }`     |

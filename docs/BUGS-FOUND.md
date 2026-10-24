@@ -87,6 +87,26 @@ Not seeded. A later test audit found this real bug, which the suite above did no
 **Impact:** script in a title runs every time the list loads, and can read the session token from
 `localStorage`. **Fix:** set the title with `textContent`.
 
+## Found by performance testing — password hashing blocked the server (PERF-001)
+
+Not seeded. The k6 suite in [performance-testing](https://github.com/VincentJerico/performance-testing)
+found this real bug; no functional test could, because every response was still correct, just late.
+
+**Bug:** `hashPassword` / `verifyPassword` used `crypto.scryptSync`, which runs on Node's only main
+thread. While a login was hashing, the server could not answer any other request, so a burst of logins
+made unrelated reads very slow. Evidence and numbers: [FINDINGS.md, PERF-001](https://github.com/VincentJerico/performance-testing/blob/main/docs/FINDINGS.md).
+**Caught by:** `tests/unit/auth.test.js` now guards it. With `scryptSync` put back behind the async
+signature, it fails:
+
+```
+× hashPassword > does not block the event loop while hashing (PERF-001)
+  → expected false to be true
+```
+
+**Impact:** login traffic degraded the whole app for every user; there was also no rate limit on the
+auth routes. **Fix:** async `crypto.scrypt` (runs on the libuv thread pool), async route handlers that
+pass errors to `next(err)`, and a per-IP rate limit on register and login.
+
 ---
 
 ## Takeaways
