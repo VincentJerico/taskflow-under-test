@@ -486,12 +486,13 @@
       async function add() {
         const title = $('new-task').value.trim();
         if (!title) return;
+        // Clear before saving, so a title typed while the request is in flight isn't appended to this one.
+        $('new-task').value = '';
         await fetch('/api/tasks', {
           method: 'POST',
           headers: authHeaders(),
           body: JSON.stringify({ title }),
         });
-        $('new-task').value = '';
         load();
       }
 
