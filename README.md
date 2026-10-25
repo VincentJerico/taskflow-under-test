@@ -1,8 +1,15 @@
-# TaskFlow, an app built to be tested
+<h1>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.svg" />
+  <img alt="TaskFlow: A small task manager I built so I could test it end to end" src=".github/assets/banner-light.svg" width="100%" />
+</picture>
+</h1>
 
 [![CI](https://github.com/VincentJerico/taskflow-under-test/actions/workflows/ci.yml/badge.svg)](https://github.com/VincentJerico/taskflow-under-test/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-unit%20%C2%B7%20API%20%C2%B7%20E2E-success)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
+<sub>QA portfolio: [01 journey](https://github.com/VincentJerico/qa-engineering-journey) · [02 framework](https://github.com/VincentJerico/playwright-framework-template) · [03 api](https://github.com/VincentJerico/api-testing-framework) · **04 taskflow** · [05 accessibility](https://github.com/VincentJerico/accessibility-testing) · [06 security](https://github.com/VincentJerico/security-testing) · [07 performance](https://github.com/VincentJerico/performance-testing) · [profile](https://github.com/VincentJerico)</sub>
 
 TaskFlow is a small task manager I built so I could test software I own from end to end. The app
 is deliberately simple. The point is the testing around it: unit, API and E2E suites, plus a set
