@@ -3,119 +3,390 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
     <title>TaskFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;500;700&display=swap"
+    />
     <style>
+      :root {
+        --ink: #141a2f;
+        --panel: #1c2340;
+        --line: #2d3663;
+        --text: #e7eaf6;
+        --muted: #9aa1c6;
+        --marigold: #f4b740;
+        --teal: #5ed1ba;
+        --danger: #ff8a8a;
+        --ui: 'Schibsted Grotesk', system-ui, sans-serif;
+        --mono: 'Martian Mono', ui-monospace, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: system-ui, sans-serif;
-        max-width: 560px;
-        margin: 2rem auto;
-        padding: 0 1rem;
-        color: #1a1a1a;
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(60rem 30rem at 50% -10rem, #222b52 0%, transparent 70%), var(--ink);
+        color: var(--text);
+        font: 400 1rem/1.5 var(--ui);
       }
-      h1 {
+      main {
+        max-width: 36rem;
+        margin: 0 auto;
+        padding: 3.5rem 1rem 4rem;
+      }
+
+      /* Wordmark: the app's name typed at a prompt. */
+      .wordmark {
+        margin: 0;
+        font: 600 1.25rem/1 var(--mono);
+        letter-spacing: -0.02em;
+      }
+      .wordmark::before {
+        content: '>';
+        color: var(--marigold);
+        margin-right: 0.5rem;
+      }
+      .wordmark::after {
+        content: '';
+        display: inline-block;
+        width: 0.55em;
+        height: 1.05em;
+        margin-left: 0.3rem;
+        vertical-align: -0.15em;
+        background: var(--marigold);
+        animation: blink 1.1s steps(1) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1.5rem;
+      }
+      h2 {
+        margin: 0 0 0.25rem;
         font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
       }
-      input,
+      .muted {
+        color: var(--muted);
+      }
+      .lede {
+        margin: 0 0 1.5rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .field {
+        margin-bottom: 1rem;
+      }
+      input[type='text'],
+      input[type='password'] {
+        width: 100%;
+        padding: 0.7rem 0.85rem;
+        font: inherit;
+        color: var(--text);
+        background: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      input::placeholder {
+        color: #8a92b8;
+      }
+      input:hover {
+        border-color: #3d4880;
+      }
+
       button {
         font: inherit;
-        padding: 0.5rem 0.6rem;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-      }
-      button {
+        font-weight: 500;
         cursor: pointer;
-        background: #2d7;
-        border-color: #2d7;
+        border-radius: 8px;
+        padding: 0.7rem 1.1rem;
+        border: 1px solid transparent;
+        transition: background-color 120ms;
       }
-      button.secondary {
-        background: #eee;
-        border-color: #ccc;
+      .primary {
+        background: var(--marigold);
+        color: #1d1606;
       }
-      .row {
+      .primary:hover {
+        background: #ffc95e;
+      }
+      .ghost {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--line);
+      }
+      .ghost:hover {
+        background: #252d52;
+      }
+      :focus-visible {
+        outline: 2px solid var(--marigold);
+        outline-offset: 2px;
+      }
+      input:focus-visible {
+        outline-offset: 0;
+        border-color: var(--marigold);
+      }
+
+      .actions {
         display: flex;
-        gap: 0.5rem;
-        margin: 0.5rem 0;
+        gap: 0.75rem;
         flex-wrap: wrap;
+      }
+      .error {
+        min-height: 1.5em;
+        margin: 1rem 0 0;
+        color: var(--danger);
+      }
+
+      /* App view */
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+      }
+      .topbar .wordmark {
+        margin-right: auto;
+      }
+      .whoami {
+        font-size: 0.875rem;
+      }
+      .topbar .ghost {
+        padding: 0.45rem 0.8rem;
+        font-size: 0.875rem;
+      }
+
+      .composer {
+        display: flex;
+        gap: 0.6rem;
+      }
+      .composer input {
+        flex: 1;
+      }
+
+      /* Run bar: one segment per task, filled when it's done. */
+      .run {
+        margin: 2rem 0 0.75rem;
+      }
+      .run-count {
+        margin: 0 0 0.6rem;
+        font: 400 0.8125rem/1 var(--mono);
+        color: var(--muted);
+      }
+      .run-count strong {
+        color: var(--teal);
+        font-weight: 600;
+      }
+      .run-bar {
+        display: flex;
+        gap: 3px;
+        height: 6px;
+      }
+      .run-bar span {
+        flex: 1;
+        border-radius: 2px;
+        background: var(--line);
+        transition: background-color 240ms;
+      }
+      .run-bar span.done {
+        background: var(--teal);
+      }
+
+      .task-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
       }
       .task {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        padding: 0.5rem;
-        border: 1px solid #e2e2e2;
-        border-radius: 6px;
-        margin: 0.4rem 0;
-      }
-      .task.done .title {
-        text-decoration: line-through;
-        color: #888;
+        gap: 0.85rem;
+        padding: 0.8rem 0.25rem 0.8rem 0.5rem;
+        border-bottom: 1px solid var(--line);
       }
       .task .title {
         flex: 1;
+        overflow-wrap: anywhere;
       }
-      .error {
-        color: #c00;
-        min-height: 1.2em;
+      .task.done .title {
+        color: var(--muted);
+        text-decoration: line-through;
+        text-decoration-color: var(--teal);
+      }
+      .task input[type='checkbox'] {
+        appearance: none;
+        flex: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        margin: 0;
+        cursor: pointer;
+        border: 1.5px solid #4a5590;
+        border-radius: 5px;
+        display: grid;
+        place-content: center;
+      }
+      .task input[type='checkbox']::after {
+        content: '';
+        width: 0.65rem;
+        height: 0.35rem;
+        border: solid var(--ink);
+        border-width: 0 0 2px 2px;
+        transform: translateY(-1px) rotate(-45deg) scale(0);
+        transition: transform 120ms;
+      }
+      .task input[type='checkbox']:checked {
+        background: var(--teal);
+        border-color: var(--teal);
+      }
+      .task input[type='checkbox']:checked::after {
+        transform: translateY(-1px) rotate(-45deg) scale(1);
+      }
+      .delete {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.8125rem;
+        color: var(--muted);
+        background: transparent;
+        opacity: 0;
+      }
+      .task:hover .delete,
+      .task:focus-within .delete {
+        opacity: 1;
+      }
+      .delete:hover {
+        color: var(--danger);
+        background: #2a2140;
+      }
+      @media (hover: none) {
+        .delete {
+          opacity: 1;
+        }
+      }
+
+      .empty {
+        margin: 2.5rem 0 0;
+        text-align: center;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
       }
       .hidden {
         display: none;
       }
-      .muted {
-        color: #666;
-        font-size: 0.85rem;
+
+      @media (max-width: 30rem) {
+        main {
+          padding-top: 2rem;
+        }
+        .panel {
+          padding: 1.25rem;
+        }
+        .whoami {
+          display: none;
+        }
       }
-      .spacer {
-        flex: 1;
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>TaskFlow</h1>
+    <main>
+      <!-- Auth view -->
+      <section id="auth-view" data-testid="auth-view">
+        <p class="wordmark" style="margin-bottom: 2rem">TaskFlow</p>
+        <div class="panel">
+          <h2>Sign in</h2>
+          <p class="muted lede">Log in, or create an account with a new username.</p>
+          <div class="field">
+            <label for="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              data-testid="username"
+              autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
+            />
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input
+              id="password"
+              data-testid="password"
+              type="password"
+              autocomplete="current-password"
+            />
+          </div>
+          <div class="actions">
+            <button data-testid="login-btn" id="login-btn" class="primary">Log in</button>
+            <button data-testid="register-btn" id="register-btn" class="ghost">
+              Create account
+            </button>
+          </div>
+          <p class="error" data-testid="auth-error" id="auth-error" aria-live="polite"></p>
+        </div>
+      </section>
 
-    <!-- Auth view -->
-    <section id="auth-view" data-testid="auth-view">
-      <p class="muted">Register or log in to manage your tasks.</p>
-      <div class="row">
-        <input
-          id="username"
-          data-testid="username"
-          placeholder="username"
-          autocomplete="username"
-        />
-        <input
-          id="password"
-          data-testid="password"
-          type="password"
-          placeholder="password"
-          autocomplete="current-password"
-        />
-      </div>
-      <div class="row">
-        <button data-testid="register-btn" id="register-btn">Register</button>
-        <button data-testid="login-btn" id="login-btn" class="secondary">Log in</button>
-      </div>
-      <p class="error" data-testid="auth-error" id="auth-error"></p>
-    </section>
+      <!-- App view -->
+      <section id="app-view" class="hidden" data-testid="app-view">
+        <header class="topbar">
+          <h1 class="wordmark">TaskFlow</h1>
+          <span class="muted whoami" data-testid="whoami" id="whoami"></span>
+          <button class="ghost" data-testid="logout-btn" id="logout-btn">Log out</button>
+        </header>
 
-    <!-- App view -->
-    <section id="app-view" class="hidden" data-testid="app-view">
-      <div class="row">
-        <span class="muted" data-testid="whoami" id="whoami"></span>
-        <span class="spacer"></span>
-        <button class="secondary" data-testid="logout-btn" id="logout-btn">Log out</button>
-      </div>
-      <div class="row">
-        <input
-          id="new-task"
-          data-testid="new-task-title"
-          placeholder="New task title"
-          style="flex: 1"
-        />
-        <button data-testid="add-task-btn" id="add-task-btn">Add</button>
-      </div>
-      <div id="task-list" data-testid="task-list"></div>
-      <p class="muted" data-testid="empty" id="empty">No tasks yet.</p>
-    </section>
+        <div class="composer">
+          <label for="new-task" class="visually-hidden">New task</label>
+          <input
+            id="new-task"
+            type="text"
+            data-testid="new-task-title"
+            placeholder="What needs doing?"
+          />
+          <button class="primary" data-testid="add-task-btn" id="add-task-btn">Add task</button>
+        </div>
+
+        <div class="run hidden" id="run">
+          <p class="run-count" id="run-count"></p>
+          <div class="run-bar" id="run-bar" aria-hidden="true"></div>
+        </div>
+        <ul class="task-list" id="task-list" data-testid="task-list"></ul>
+        <p class="muted empty" data-testid="empty" id="empty">
+          No tasks yet. Add one above to get started.
+        </p>
+      </section>
+    </main>
 
     <script>
       const $ = (id) => document.getElementById(id);
@@ -173,6 +444,15 @@
         showAuth();
       }
 
+      function renderRun(tasks) {
+        const done = tasks.filter((t) => t.status === 'done').length;
+        $('run').classList.toggle('hidden', tasks.length === 0);
+        $('run-count').innerHTML = `<strong>${done}</strong> of ${tasks.length} done`;
+        $('run-bar').innerHTML = tasks
+          .map((t) => `<span class="${t.status === 'done' ? 'done' : ''}"></span>`)
+          .join('');
+      }
+
       async function load() {
         const res = await fetch('/api/tasks', { headers: authHeaders() });
         if (res.status === 401) {
@@ -181,20 +461,25 @@
         }
         const tasks = await res.json();
         $('empty').classList.toggle('hidden', tasks.length > 0);
+        renderRun(tasks);
         $('task-list').innerHTML = '';
         for (const t of tasks) {
-          const div = document.createElement('div');
-          div.className = 'task' + (t.status === 'done' ? ' done' : '');
-          div.dataset.testid = 'task';
-          div.dataset.id = t.id;
-          div.innerHTML =
+          const li = document.createElement('li');
+          li.className = 'task' + (t.status === 'done' ? ' done' : '');
+          li.dataset.testid = 'task';
+          li.dataset.id = t.id;
+          li.innerHTML =
             `<input type="checkbox" data-testid="toggle" ${t.status === 'done' ? 'checked' : ''} />` +
             `<span class="title" data-testid="task-title"></span>` +
-            `<button class="secondary" data-testid="delete">Delete</button>`;
-          div.querySelector('[data-testid=task-title]').textContent = t.title;
-          div.querySelector('[data-testid=toggle]').addEventListener('change', () => toggle(t));
-          div.querySelector('[data-testid=delete]').addEventListener('click', () => remove(t.id));
-          $('task-list').appendChild(div);
+            `<button class="delete" data-testid="delete">Delete</button>`;
+          li.querySelector('[data-testid=task-title]').textContent = t.title;
+          const toggleBox = li.querySelector('[data-testid=toggle]');
+          toggleBox.setAttribute('aria-label', t.title); // checked state is announced as "done"
+          toggleBox.addEventListener('change', () => toggle(t));
+          const del = li.querySelector('[data-testid=delete]');
+          del.setAttribute('aria-label', `Delete "${t.title}"`);
+          del.addEventListener('click', () => remove(t.id));
+          $('task-list').appendChild(li);
         }
       }
 
