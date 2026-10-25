@@ -112,3 +112,25 @@ test('add two tasks then delete one', async ({ page }) => {
   await expect(page.getByTestId('task')).toHaveCount(1);
   await expect(page.getByTestId('task').filter({ hasText: 'Task one' })).toHaveCount(0);
 });
+
+test('typing the next task while the last one is saving does not merge the titles', async ({
+  page,
+}) => {
+  await registerAndEnter(page);
+  // Hold the first create request so the next title is typed while it's in flight.
+  let release;
+  const held = new Promise((resolve) => (release = resolve));
+  await page.route('**/api/tasks', async (route) => {
+    if (route.request().method() === 'POST') await held;
+    await route.continue();
+  });
+
+  const input = page.getByTestId('new-task-title');
+  await input.fill('First task');
+  await input.press('Enter');
+  await input.pressSequentially('Second task');
+  release();
+  await input.press('Enter');
+
+  await expect(page.getByTestId('task-title')).toHaveText(['First task', 'Second task']);
+});
