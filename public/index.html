@@ -98,7 +98,8 @@
         margin-bottom: 1rem;
       }
       input[type='text'],
-      input[type='password'] {
+      input[type='password'],
+      input[type='date'] {
         width: 100%;
         padding: 0.7rem 0.85rem;
         font: inherit;
@@ -138,6 +139,10 @@
       .ghost:hover {
         background: #252d52;
       }
+      button:disabled {
+        opacity: 0.6;
+        cursor: progress;
+      }
       :focus-visible {
         outline: 2px solid var(--marigold);
         outline-offset: 2px;
@@ -151,6 +156,26 @@
         display: flex;
         gap: 0.75rem;
         flex-wrap: wrap;
+      }
+      .password-wrap {
+        position: relative;
+      }
+      .password-wrap input {
+        padding-right: 4.75rem;
+      }
+      .reveal {
+        position: absolute;
+        top: 50%;
+        right: 0.35rem;
+        transform: translateY(-50%);
+        padding: 0.35rem 0.65rem;
+        font-size: 0.8125rem;
+        color: var(--muted);
+        background: transparent;
+      }
+      .reveal:hover {
+        color: var(--text);
+        background: #252d52;
       }
       .error {
         min-height: 1.5em;
@@ -178,18 +203,35 @@
 
       .composer {
         display: flex;
+        flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .composer input {
-        flex: 1;
+      .composer #new-task {
+        flex: 1 1 14rem;
+      }
+      .composer input[type='date'] {
+        flex: 0 0 auto;
+        width: auto;
+      }
+      /* An empty date field shows the browser's mm/dd/yyyy mask; mute it like a placeholder. */
+      .composer input[type='date'].is-empty {
+        color: var(--muted);
       }
 
       /* Run bar: one segment per task, filled when it's done. */
       .run {
         margin: 2rem 0 0.75rem;
       }
+      .run-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
       .run-count {
-        margin: 0 0 0.6rem;
+        margin: 0;
         font: 400 0.8125rem/1 var(--mono);
         color: var(--muted);
       }
@@ -212,6 +254,34 @@
         background: var(--teal);
       }
 
+      /* Filter: which tasks the list shows. */
+      .filter {
+        display: inline-flex;
+        gap: 2px;
+        padding: 2px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      .filter button {
+        padding: 0.3rem 0.7rem;
+        font-size: 0.8125rem;
+        color: var(--muted);
+        background: transparent;
+        border-radius: 6px;
+      }
+      .filter button:hover {
+        color: var(--text);
+      }
+      .filter button[aria-pressed='true'] {
+        color: var(--text);
+        background: #252d52;
+      }
+      .filter .n {
+        margin-left: 0.35rem;
+        font: 400 0.75rem var(--mono);
+        color: var(--muted);
+      }
+
       .task-list {
         list-style: none;
         margin: 0;
@@ -224,9 +294,30 @@
         padding: 0.8rem 0.25rem 0.8rem 0.5rem;
         border-bottom: 1px solid var(--line);
       }
-      .task .title {
+      .task .body {
         flex: 1;
+        min-width: 0;
+      }
+      .task .title {
         overflow-wrap: anywhere;
+      }
+      .due {
+        display: block;
+        margin-top: 0.2rem;
+        font: 400 0.75rem/1.3 var(--mono);
+        color: var(--muted);
+      }
+      .due.today {
+        color: var(--marigold);
+      }
+      .due.overdue {
+        color: var(--danger);
+      }
+      .task.done .due {
+        color: var(--muted);
+      }
+      .edit-title {
+        padding: 0.35rem 0.55rem;
       }
       .task.done .title {
         color: var(--muted);
@@ -261,25 +352,72 @@
       .task input[type='checkbox']:checked::after {
         transform: translateY(-1px) rotate(-45deg) scale(1);
       }
-      .delete {
+      .row-action {
         padding: 0.35rem 0.6rem;
         font-size: 0.8125rem;
         color: var(--muted);
         background: transparent;
         opacity: 0;
       }
-      .task:hover .delete,
-      .task:focus-within .delete {
+      .task:hover .row-action,
+      .task:focus-within .row-action {
         opacity: 1;
+      }
+      .row-action:hover {
+        color: var(--text);
+        background: #252d52;
       }
       .delete:hover {
         color: var(--danger);
         background: #2a2140;
       }
       @media (hover: none) {
-        .delete {
+        .row-action {
           opacity: 1;
         }
+      }
+      @media (pointer: coarse) {
+        .task input[type='checkbox'] {
+          width: 1.5rem;
+          height: 1.5rem;
+        }
+      }
+      /* While a title is being edited, give the field the whole row. */
+      .task.editing .row-action {
+        display: none;
+      }
+
+      /* Toast: confirms an action (with Undo) or says a save failed. */
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 1.5rem;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        max-width: calc(100% - 2rem);
+        padding: 0.55rem 0.55rem 0.55rem 1rem;
+        background: #262e52;
+        border: 1px solid #3a4478;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgb(0 0 0 / 0.4);
+      }
+      .toast:empty {
+        display: none;
+      }
+      .toast.error {
+        border-color: var(--danger);
+      }
+      .toast button {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.875rem;
+        color: var(--marigold);
+        background: transparent;
+        border-color: #3a4478;
+      }
+      .toast button:hover {
+        background: #303a66;
       }
 
       .empty {
@@ -325,7 +463,7 @@
       <!-- Auth view -->
       <section id="auth-view" data-testid="auth-view">
         <p class="wordmark" style="margin-bottom: 2rem">TaskFlow</p>
-        <div class="panel">
+        <form class="panel" id="auth-form" novalidate>
           <h2>Sign in</h2>
           <p class="muted lede">Log in, or create an account with a new username.</p>
           <div class="field">
@@ -341,21 +479,34 @@
           </div>
           <div class="field">
             <label for="password">Password</label>
-            <input
-              id="password"
-              data-testid="password"
-              type="password"
-              autocomplete="current-password"
-            />
+            <div class="password-wrap">
+              <input
+                id="password"
+                data-testid="password"
+                type="password"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="reveal"
+                id="reveal"
+                aria-pressed="false"
+                aria-controls="password"
+              >
+                Show
+              </button>
+            </div>
           </div>
           <div class="actions">
-            <button data-testid="login-btn" id="login-btn" class="primary">Log in</button>
-            <button data-testid="register-btn" id="register-btn" class="ghost">
+            <button type="submit" data-testid="login-btn" id="login-btn" class="primary">
+              Log in
+            </button>
+            <button type="button" data-testid="register-btn" id="register-btn" class="ghost">
               Create account
             </button>
           </div>
           <p class="error" data-testid="auth-error" id="auth-error" aria-live="polite"></p>
-        </div>
+        </form>
       </section>
 
       <!-- App view -->
@@ -374,11 +525,36 @@
             data-testid="new-task-title"
             placeholder="What needs doing?"
           />
+          <label for="new-due" class="visually-hidden">Due date (optional)</label>
+          <input id="new-due" type="date" data-testid="new-task-due" class="is-empty" />
           <button class="primary" data-testid="add-task-btn" id="add-task-btn">Add task</button>
         </div>
 
         <div class="run hidden" id="run">
-          <p class="run-count" id="run-count"></p>
+          <div class="run-head">
+            <p class="run-count" id="run-count"></p>
+            <div class="filter" role="group" aria-label="Show tasks">
+              <button type="button" data-filter="all" data-testid="filter-all" aria-pressed="true">
+                All<span class="n" id="n-all"></span>
+              </button>
+              <button
+                type="button"
+                data-filter="todo"
+                data-testid="filter-todo"
+                aria-pressed="false"
+              >
+                To do<span class="n" id="n-todo"></span>
+              </button>
+              <button
+                type="button"
+                data-filter="done"
+                data-testid="filter-done"
+                aria-pressed="false"
+              >
+                Done<span class="n" id="n-done"></span>
+              </button>
+            </div>
+          </div>
           <div class="run-bar" id="run-bar" aria-hidden="true"></div>
         </div>
         <ul class="task-list" id="task-list" data-testid="task-list"></ul>
@@ -388,15 +564,65 @@
       </section>
     </main>
 
+    <div class="toast" id="toast" data-testid="toast" role="status" aria-live="polite"></div>
+
     <script>
       const $ = (id) => document.getElementById(id);
-      const token = () => localStorage.getItem('tf_token');
-      const setToken = (t) =>
-        t ? localStorage.setItem('tf_token', t) : localStorage.removeItem('tf_token');
+      const store = {
+        get: (k) => localStorage.getItem(k),
+        set: (k, v) => (v ? localStorage.setItem(k, v) : localStorage.removeItem(k)),
+      };
+      const token = () => store.get('tf_token');
       const authHeaders = () => ({
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token()}`,
       });
+
+      let tasks = [];
+      let filter = 'all';
+      let editingId = null;
+      let focusAfterRender = null; // selector to focus once the list is redrawn
+
+      class SessionEnded extends Error {}
+
+      /** fetch for the task API: throws on network errors and non-2xx, signs out on 401. */
+      async function api(path, options = {}) {
+        const res = await fetch(path, { ...options, headers: authHeaders() });
+        if (res.status === 401) {
+          signOut('Your session ended. Log in again.');
+          throw new SessionEnded();
+        }
+        if (!res.ok) throw new Error(`${res.status}`);
+        return res.status === 204 ? null : res.json();
+      }
+
+      // ---- Toast -----------------------------------------------------------------------------
+
+      let toastTimer;
+      function toast(message, { action, error = false } = {}) {
+        clearTimeout(toastTimer);
+        const el = $('toast');
+        el.textContent = message;
+        el.classList.toggle('error', error);
+        if (action) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = action.label;
+          btn.dataset.testid = action.testid;
+          btn.addEventListener('click', () => {
+            hideToast();
+            action.run();
+          });
+          el.appendChild(btn);
+        }
+        toastTimer = setTimeout(hideToast, action ? 8000 : 5000);
+      }
+      function hideToast() {
+        clearTimeout(toastTimer);
+        $('toast').textContent = '';
+      }
+
+      // ---- Auth ------------------------------------------------------------------------------
 
       function showAuth() {
         $('auth-view').classList.remove('hidden');
@@ -405,122 +631,364 @@
       function showApp() {
         $('auth-view').classList.add('hidden');
         $('app-view').classList.remove('hidden');
+        $('whoami').textContent = 'Signed in as ' + store.get('tf_user');
         load();
       }
-
-      async function register() {
-        $('auth-error').textContent = '';
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: $('username').value, password: $('password').value }),
-        });
-        if (!res.ok) {
-          $('auth-error').textContent = (await res.json()).error || 'Registration failed';
-          return;
-        }
-        await login();
+      function signOut(message = '') {
+        store.set('tf_token', null);
+        store.set('tf_user', null);
+        tasks = [];
+        hideToast();
+        showAuth();
+        $('auth-error').textContent = message;
       }
 
-      async function login() {
+      /** The message to show for a failed register or login response. */
+      async function authError(res, action) {
+        if (res.status === 429) {
+          const wait = Number(res.headers.get('Retry-After'));
+          return wait > 0
+            ? `Too many attempts. Try again in ${wait} seconds.`
+            : 'Too many attempts. Try again in a minute.';
+        }
+        if (action === 'login' && res.status === 401) {
+          return 'Invalid credentials. Check your username and password.';
+        }
+        if (res.status === 409) return 'That username is taken. Pick another, or log in.';
+        const body = await res.json().catch(() => ({}));
+        return body.error
+          ? body.error[0].toUpperCase() + body.error.slice(1) + '.'
+          : 'Something went wrong. Try again.';
+      }
+
+      async function authenticate(action) {
+        const username = $('username').value.trim();
+        const password = $('password').value;
         $('auth-error').textContent = '';
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: $('username').value, password: $('password').value }),
-        });
-        if (!res.ok) {
-          $('auth-error').textContent = 'Invalid credentials';
+        if (!username || !password) {
+          $('auth-error').textContent = 'Enter a username and password.';
+          (username ? $('password') : $('username')).focus();
           return;
         }
-        setToken((await res.json()).token);
-        $('whoami').textContent = 'Signed in as ' + $('username').value;
-        showApp();
+        const buttons = [$('login-btn'), $('register-btn')];
+        buttons.forEach((b) => (b.disabled = true));
+        try {
+          const post = (path) =>
+            fetch(path, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password }),
+            });
+          if (action === 'register') {
+            const res = await post('/api/auth/register');
+            if (!res.ok) return void ($('auth-error').textContent = await authError(res, action));
+          }
+          const res = await post('/api/auth/login');
+          if (!res.ok) return void ($('auth-error').textContent = await authError(res, 'login'));
+          store.set('tf_token', (await res.json()).token);
+          store.set('tf_user', username);
+          $('password').value = '';
+          showApp();
+        } catch {
+          $('auth-error').textContent =
+            "Can't reach TaskFlow. Check your connection and try again.";
+        } finally {
+          buttons.forEach((b) => (b.disabled = false));
+        }
       }
 
       async function logout() {
-        await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() });
-        setToken(null);
-        showAuth();
+        await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() }).catch(() => {});
+        signOut();
       }
 
-      function renderRun(tasks) {
+      // ---- Dates -----------------------------------------------------------------------------
+
+      function setDue(value) {
+        $('new-due').value = value;
+        $('new-due').classList.toggle('is-empty', !value);
+      }
+
+      /** Today as YYYY-MM-DD in the viewer's time zone. */
+      function today() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+
+      /** "Due Fri 14 Nov", "Due today", "Overdue: Mon 3 Nov". null when there's no due date. */
+      function dueLabel(task) {
+        if (!task.due_date) return null;
+        const [y, m, d] = task.due_date.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        const sameYear = y === new Date().getFullYear();
+        const text = date.toLocaleDateString(undefined, {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          ...(sameYear ? {} : { year: 'numeric' }),
+        });
+        const t = today();
+        if (task.status !== 'done' && task.due_date < t)
+          return { text: `Overdue: ${text}`, kind: 'overdue' };
+        if (task.due_date === t) return { text: 'Due today', kind: 'today' };
+        return { text: `Due ${text}`, kind: '' };
+      }
+
+      // ---- Tasks -----------------------------------------------------------------------------
+
+      async function load() {
+        try {
+          tasks = await api('/api/tasks');
+          render();
+        } catch (err) {
+          if (!(err instanceof SessionEnded))
+            toast("Couldn't load your tasks. Reload to try again.", { error: true });
+        }
+      }
+
+      function render() {
         const done = tasks.filter((t) => t.status === 'done').length;
         $('run').classList.toggle('hidden', tasks.length === 0);
         $('run-count').innerHTML = `<strong>${done}</strong> of ${tasks.length} done`;
         $('run-bar').innerHTML = tasks
           .map((t) => `<span class="${t.status === 'done' ? 'done' : ''}"></span>`)
           .join('');
+        $('n-all').textContent = tasks.length;
+        $('n-todo').textContent = tasks.length - done;
+        $('n-done').textContent = done;
+        for (const b of document.querySelectorAll('[data-filter]')) {
+          b.setAttribute('aria-pressed', String(b.dataset.filter === filter));
+        }
+
+        const shown = tasks.filter((t) =>
+          filter === 'all' ? true : filter === 'done' ? t.status === 'done' : t.status !== 'done',
+        );
+        const empty = $('empty');
+        empty.classList.toggle('hidden', shown.length > 0);
+        empty.textContent =
+          tasks.length === 0
+            ? 'No tasks yet. Add one above to get started.'
+            : filter === 'done'
+              ? 'Nothing done yet.'
+              : 'Nothing left to do.';
+
+        $('task-list').replaceChildren(...shown.map(taskRow));
+        if (focusAfterRender) {
+          document.querySelector(focusAfterRender)?.focus();
+          focusAfterRender = null;
+        }
       }
 
-      async function load() {
-        const res = await fetch('/api/tasks', { headers: authHeaders() });
-        if (res.status === 401) {
-          setToken(null);
-          return showAuth();
+      function taskRow(t) {
+        const li = document.createElement('li');
+        li.className =
+          'task' + (t.status === 'done' ? ' done' : '') + (editingId === t.id ? ' editing' : '');
+        li.dataset.testid = 'task';
+        li.dataset.id = t.id;
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.checked = t.status === 'done';
+        box.dataset.testid = 'toggle';
+        box.setAttribute('aria-label', t.title); // checked state is announced as "done"
+        box.addEventListener('change', () => toggle(t));
+
+        const body = document.createElement('div');
+        body.className = 'body';
+        if (editingId === t.id) {
+          body.appendChild(editField(t));
+        } else {
+          const title = document.createElement('span');
+          title.className = 'title';
+          title.dataset.testid = 'task-title';
+          title.textContent = t.title;
+          body.appendChild(title);
         }
-        const tasks = await res.json();
-        $('empty').classList.toggle('hidden', tasks.length > 0);
-        renderRun(tasks);
-        $('task-list').innerHTML = '';
-        for (const t of tasks) {
-          const li = document.createElement('li');
-          li.className = 'task' + (t.status === 'done' ? ' done' : '');
-          li.dataset.testid = 'task';
-          li.dataset.id = t.id;
-          li.innerHTML =
-            `<input type="checkbox" data-testid="toggle" ${t.status === 'done' ? 'checked' : ''} />` +
-            `<span class="title" data-testid="task-title"></span>` +
-            `<button class="delete" data-testid="delete">Delete</button>`;
-          li.querySelector('[data-testid=task-title]').textContent = t.title;
-          const toggleBox = li.querySelector('[data-testid=toggle]');
-          toggleBox.setAttribute('aria-label', t.title); // checked state is announced as "done"
-          toggleBox.addEventListener('change', () => toggle(t));
-          const del = li.querySelector('[data-testid=delete]');
-          del.setAttribute('aria-label', `Delete "${t.title}"`);
-          del.addEventListener('click', () => remove(t.id));
-          $('task-list').appendChild(li);
+        const due = dueLabel(t);
+        if (due) {
+          const el = document.createElement('span');
+          el.className = `due ${due.kind}`;
+          el.dataset.testid = 'task-due';
+          el.textContent = due.text;
+          body.appendChild(el);
+        }
+
+        const edit = document.createElement('button');
+        edit.className = 'row-action';
+        edit.dataset.testid = 'edit';
+        edit.textContent = 'Edit';
+        edit.setAttribute('aria-label', `Edit "${t.title}"`);
+        edit.addEventListener('click', () => startEdit(t.id));
+
+        const del = document.createElement('button');
+        del.className = 'row-action delete';
+        del.dataset.testid = 'delete';
+        del.textContent = 'Delete';
+        del.setAttribute('aria-label', `Delete "${t.title}"`);
+        del.addEventListener('click', () => remove(t));
+
+        li.append(box, body, edit, del);
+        return li;
+      }
+
+      function editField(t) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'edit-title';
+        input.dataset.testid = 'edit-title';
+        input.value = t.title;
+        input.setAttribute('aria-label', 'Task title');
+        let finished = false;
+        const finish = (save) => {
+          if (finished) return;
+          finished = true;
+          saveTitle(t, save ? input.value.trim() : t.title);
+        };
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') finish(true);
+          if (e.key === 'Escape') finish(false);
+        });
+        input.addEventListener('blur', () => finish(true));
+        return input;
+      }
+
+      function startEdit(id) {
+        editingId = id;
+        focusAfterRender = `[data-id="${id}"] [data-testid=edit-title]`;
+        render();
+        document.querySelector(`[data-id="${id}"] [data-testid=edit-title]`)?.select();
+      }
+
+      async function saveTitle(t, title) {
+        editingId = null;
+        focusAfterRender = `[data-id="${t.id}"] [data-testid=edit]`;
+        if (!title || title === t.title) return render();
+        try {
+          const updated = await api('/api/tasks/' + t.id, {
+            method: 'PUT',
+            body: JSON.stringify({ title, status: t.status, due_date: t.due_date }),
+          });
+          tasks = tasks.map((x) => (x.id === t.id ? updated : x));
+          render();
+        } catch (err) {
+          render();
+          if (!(err instanceof SessionEnded))
+            toast("Couldn't rename the task. Try again.", { error: true });
         }
       }
 
       async function add() {
-        const title = $('new-task').value.trim();
-        if (!title) return;
+        const input = $('new-task');
+        const title = input.value.trim();
+        if (!title) return input.focus();
+        const due_date = $('new-due').value || null;
         // Clear before saving, so a title typed while the request is in flight isn't appended to this one.
-        $('new-task').value = '';
-        await fetch('/api/tasks', {
-          method: 'POST',
-          headers: authHeaders(),
-          body: JSON.stringify({ title }),
-        });
-        load();
+        input.value = '';
+        setDue('');
+        try {
+          const created = await api('/api/tasks', {
+            method: 'POST',
+            body: JSON.stringify({ title, due_date }),
+          });
+          // Read `tasks` after the await: another add may have finished in the meantime.
+          tasks = [...tasks, created];
+          render();
+        } catch (err) {
+          if (err instanceof SessionEnded) return;
+          // Give the text back, unless the next task is already being typed.
+          if (!input.value) {
+            input.value = title;
+            setDue(due_date ?? '');
+          }
+          toast("Couldn't add the task. Try again.", { error: true });
+        }
       }
 
       async function toggle(t) {
-        await fetch('/api/tasks/' + t.id, {
-          method: 'PUT',
-          headers: authHeaders(),
-          body: JSON.stringify({
-            title: t.title,
-            status: t.status === 'done' ? 'todo' : 'done',
-            due_date: t.due_date,
-          }),
-        });
-        load();
+        try {
+          const updated = await api('/api/tasks/' + t.id, {
+            method: 'PUT',
+            body: JSON.stringify({
+              title: t.title,
+              status: t.status === 'done' ? 'todo' : 'done',
+              due_date: t.due_date,
+            }),
+          });
+          tasks = tasks.map((x) => (x.id === t.id ? updated : x));
+          focusAfterRender = `[data-id="${t.id}"] [data-testid=toggle]`;
+          render();
+        } catch (err) {
+          render(); // put the checkbox back
+          if (!(err instanceof SessionEnded))
+            toast("Couldn't update the task. Try again.", { error: true });
+        }
       }
 
-      async function remove(id) {
-        await fetch('/api/tasks/' + id, { method: 'DELETE', headers: authHeaders() });
-        load();
+      async function remove(t) {
+        // Where focus goes once the row is gone: the next row, the previous one, or the composer.
+        const row = document.querySelector(`[data-id="${t.id}"]`);
+        const neighbour = row?.nextElementSibling ?? row?.previousElementSibling;
+        try {
+          await api('/api/tasks/' + t.id, { method: 'DELETE' });
+          tasks = tasks.filter((x) => x.id !== t.id);
+          focusAfterRender = neighbour
+            ? `[data-id="${neighbour.dataset.id}"] [data-testid=toggle]`
+            : '#new-task';
+          render();
+          toast('Task deleted.', {
+            action: { label: 'Undo', testid: 'undo', run: () => restore(t) },
+          });
+        } catch (err) {
+          if (!(err instanceof SessionEnded))
+            toast("Couldn't delete the task. Try again.", { error: true });
+        }
       }
 
-      $('register-btn').addEventListener('click', register);
-      $('login-btn').addEventListener('click', login);
+      /** Undo a delete by creating the task again (it gets a new id, so it moves to the end). */
+      async function restore(t) {
+        try {
+          const created = await api('/api/tasks', {
+            method: 'POST',
+            body: JSON.stringify({ title: t.title, status: t.status, due_date: t.due_date }),
+          });
+          tasks = [...tasks, created];
+          focusAfterRender = `[data-id="${created.id}"] [data-testid=toggle]`;
+          render();
+        } catch (err) {
+          if (!(err instanceof SessionEnded))
+            toast("Couldn't restore the task. Try again.", { error: true });
+        }
+      }
+
+      // ---- Wiring ----------------------------------------------------------------------------
+
+      $('auth-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        authenticate('login');
+      });
+      // The error is about what was submitted; once the fields change, it no longer applies.
+      $('auth-form').addEventListener('input', () => ($('auth-error').textContent = ''));
+      $('register-btn').addEventListener('click', () => authenticate('register'));
+      $('reveal').addEventListener('click', () => {
+        const shown = $('password').type === 'text';
+        $('password').type = shown ? 'password' : 'text';
+        $('reveal').textContent = shown ? 'Show' : 'Hide';
+        $('reveal').setAttribute('aria-pressed', String(!shown));
+      });
       $('logout-btn').addEventListener('click', logout);
       $('add-task-btn').addEventListener('click', add);
-      $('new-task').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') add();
-      });
+      $('new-due').addEventListener('input', (e) => setDue(e.target.value));
+      for (const id of ['new-task', 'new-due']) {
+        $(id).addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') add();
+        });
+      }
+      for (const b of document.querySelectorAll('[data-filter]')) {
+        b.addEventListener('click', () => {
+          filter = b.dataset.filter;
+          render();
+        });
+      }
 
       // Restore session if a token exists.
       if (token()) showApp();
