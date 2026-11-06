@@ -20,7 +20,9 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
   webServer: {
-    command: 'DATABASE_PATH=e2e.db npm start',
+    // Auth rate limit off: every test signs up from the same IP. The limit is covered by
+    // tests/api/rate-limit.test.js, and the UI's 429 message by a mocked response in ux.spec.js.
+    command: 'DATABASE_PATH=e2e.db AUTH_RATE_LIMIT=0 npm start',
     url: 'http://localhost:3000/health',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
